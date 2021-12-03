@@ -3,12 +3,11 @@ package com.dnd.spells.controllers;
 import java.util.List;
 import java.util.Optional;
 
+import com.dnd.spells.pojo.Book;
+import com.dnd.spells.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.dnd.spells.pojo.Spells;
 import com.dnd.spells.services.SpellsService;
@@ -22,6 +21,9 @@ public class DndController {
 	
 	@Autowired
 	SpellsService spellsService;
+
+	@Autowired
+	BookService bookService;
 	
 	/*
 	@RequestMapping({"/"})
@@ -37,9 +39,9 @@ public class DndController {
 		return "hello world";
 	}
 	
-	@RequestMapping(method = RequestMethod.GET, value = "/spell/{}")
+	@RequestMapping(method = RequestMethod.GET, value = "/spell/{id}")
 	public ResponseEntity<?> getSpellName(@PathVariable int id) {
-		log.info("DndController: get spell");
+		log.info("DndController: get spell by it's ID");
 		Optional<Spells> spell = spellsService.getSpellById(id);
 		return ResponseEntity.ok(spell.toString());
 		
@@ -51,6 +53,38 @@ public class DndController {
 		List<Spells> spells = spellsService.getAllSpells();
 		return ResponseEntity.ok(spells);
 		
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/spells/book/{bookid}")
+	public ResponseEntity<?> getSpellsByBook(@PathVariable int bookid) {
+		log.info("DndController: get spell by book id");
+		List<Spells> spells = spellsService.getSpellsByBook(bookid);
+		return ResponseEntity.ok(spells.toString());
+
+	}
+
+	@RequestMapping(method = RequestMethod.POST, value = "/addSpell")
+	@ResponseBody
+	public void addSpell(@RequestParam("name") String name, @RequestParam("description") String description) {
+		spellsService.addSpell(name, description);
+	}
+
+	@RequestMapping(method = RequestMethod.POST, value = "/addSpellToBook/{bookName}")
+	@ResponseBody
+	public void addSpell(@RequestParam("name") String name, @RequestParam("description") String description, @PathVariable("bookName") String bookName) {
+		log.info("Add a spell");
+		Book book = bookService.getBookByName(bookName);
+		log.info("Book {}", book.toString());
+		Spells spell = new Spells(name, description, book);
+		log.info("spell {}", spell);
+		spellsService.addSpell(spell);
+
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/book/{name}")
+	public ResponseEntity<?> getBook(@PathVariable String name) {
+		Book book = bookService.getBookByName(name);
+		return ResponseEntity.ok(book.toString());
 	}
 
 }
